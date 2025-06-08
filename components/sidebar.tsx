@@ -12,7 +12,7 @@ export function Sidebar() {
     { name: "Culturas", href: "/culturas", icon: Leaf },
     { name: "Plantios", href: "/plantios", icon: Seedling },
     { name: "Colheitas", href: "/colheitas", icon: Sprout },
-    { name: "Relatórios", href: "/relatorios", icon: BarChart3 },
+    { name: "Histórico", href: "/relatorios", icon: BarChart3 },
     { name: "Simulador", href: "/simulador", icon: Calculator },
   ]
 

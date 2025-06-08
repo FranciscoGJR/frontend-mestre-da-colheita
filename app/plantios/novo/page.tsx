@@ -120,8 +120,8 @@ export default function NovoPlantioPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center">
-        <Button variant="ghost" onClick={() => router.back()} className="mr-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
+        <Button variant="ghost" onClick={() => router.back()} className="mr-4 text-white">
+          <ArrowLeft className="h-4 w-4 mr-2 text-white" />
           Voltar
         </Button>
         <h1 className="text-3xl font-bold tracking-tight text-green-700">Novo Plantio</h1>
@@ -184,22 +184,6 @@ export default function NovoPlantioPage() {
                   onChange={handleChange}
                   required
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="estacao_plantio">Estação de Plantio</Label>
-                <Select onValueChange={(value) => handleSelectChange("estacao_plantio", value)} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma estação" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {estacoes.map((estacao) => (
-                      <SelectItem key={estacao} value={estacao}>
-                        {estacao}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">

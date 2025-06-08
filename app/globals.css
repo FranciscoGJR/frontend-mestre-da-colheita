@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -51,9 +53,25 @@
 
 @layer base {
   * {
-    @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    font-family: 'Press Start 2P', monospace;
+    background-image: url('/stardewbackground.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 100vh;
+  }
+  .text-green-700 {
+    color: #4ade80 !important; /* Tailwind green-400 */
+  }
+  /* Aplica o fundo claro para todos os elementos com classe bg-card (usada pelo componente <Card>) */
+  .bg-card {
+    background-color: #FFFFFF !important;
+  }
+
+  /* Fundo branco para o SelectTrigger do shadcn/ui */
+  .SelectTrigger, [data-slot="trigger"] {
+    background-color: #fff !important;
   }
 }

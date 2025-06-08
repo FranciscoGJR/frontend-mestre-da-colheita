@@ -37,10 +37,12 @@ export default function DetalhesPlantioPage({ params }: { params: { id: string }
       try {
         const plantioData = await fetchApi(`/plantios/${params.id}`)
         setPlantio(plantioData)
+        console.log(`Dados do plantio carregados:`, plantioData)
 
         // Buscar a cultura correspondente
         if (plantioData && plantioData.id_cultura) {
           const culturaData = await fetchApi(`/culturas/${plantioData.id_cultura}`)
+          console.log(`Dados da cultura carregados:`, culturaData)
           setCultura(culturaData)
         }
       } catch (err) {
@@ -82,8 +84,8 @@ export default function DetalhesPlantioPage({ params }: { params: { id: string }
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <Button variant="ghost" onClick={() => router.back()} className="mr-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <Button variant="ghost" onClick={() => router.back()} className="mr-4  text-white">
+            <ArrowLeft className="h-4 w-4 mr-2  text-white" />
             Voltar
           </Button>
           <h1 className="text-3xl font-bold tracking-tight text-green-700">Detalhes do Plantio</h1>
@@ -123,7 +125,11 @@ export default function DetalhesPlantioPage({ params }: { params: { id: string }
 
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Estação de Plantio</h3>
-              <p className="text-lg">{plantio.estacao_plantio || "Não especificada"}</p>
+              <p className="text-lg">
+                {cultura && (cultura as any).estacao
+                  ? (cultura as any).estacao
+                  : "Não especificada"}
+              </p>
             </div>
 
             <div>

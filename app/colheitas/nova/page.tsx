@@ -167,8 +167,8 @@ export default function NovaColheitaPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center">
-        <Button variant="ghost" onClick={() => router.back()} className="mr-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
+        <Button variant="ghost" onClick={() => router.back()} className="mr-4 text-white">
+          <ArrowLeft className="h-4 w-4 mr-2 text-white" />
           Voltar
         </Button>
         <h1 className="text-3xl font-bold tracking-tight text-green-700">Nova Colheita</h1>

@@ -5,13 +5,18 @@ export const API_BASE_URL = "http://localhost:8080/api/v1"
 export async function fetchApi(endpoint: string, options?: RequestInit) {
   const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`
 
+  // Só adiciona Content-Type para métodos que enviam corpo
+  const method = options?.method ? options.method.toUpperCase() : "GET"
+  const headers =
+    method === "GET"
+      ? { ...options?.headers }
+      : { "Content-Type": "application/json", ...options?.headers }
+
   try {
     const response = await fetch(url, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
+      method,
+      headers,
     })
 
     if (!response.ok) {

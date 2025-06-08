@@ -26,6 +26,7 @@ export default function CulturasPage() {
   const [culturas, setCulturas] = useState<Cultura[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<number | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -77,9 +78,6 @@ export default function CulturasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-green-700">Culturas</h1>
-        <Button className="bg-green-600 hover:bg-green-700" onClick={() => router.push("/culturas/nova")}>
-          <Plus className="mr-2 h-4 w-4" /> Nova Cultura
-        </Button>
       </div>
 
       <Card>
@@ -90,36 +88,52 @@ export default function CulturasPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
+                <TableHead></TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Tempo de Crescimento</TableHead>
                 <TableHead>Preço Normal</TableHead>
-                <TableHead>Recorrente</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead></TableHead> {/* Botão Mais informações */}
               </TableRow>
             </TableHeader>
             <TableBody>
               {culturas.length > 0 ? (
                 culturas.map((cultura) => (
-                  <TableRow key={cultura.id}>
-                    <TableCell>{cultura.id}</TableCell>
-                    <TableCell className="font-medium">{cultura.nome}</TableCell>
-                    <TableCell>{cultura.tempo_crescimento} dias</TableCell>
-                    <TableCell>R$ {cultura.preco_normal.toFixed(2)}</TableCell>
-                    <TableCell>{cultura.recorrente ? "Sim" : "Não"}</TableCell>
-                    <TableCell className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => router.push(`/culturas/editar/${cultura.id}`)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="destructive" size="icon" onClick={() => handleDelete(cultura.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  <>
+                    <TableRow key={cultura.id}>
+                      <TableCell>
+                        {/* Mostra imagem se existir em /public/small-imgs/{cultura.nome.toLowerCase()}.png */}
+                        <CulturaImg nome={cultura.nome} />
+                      </TableCell>
+                      <TableCell className="font-medium">{cultura.nome}</TableCell>
+                      <TableCell>{cultura.tempo_crescimento} dias</TableCell>
+                      <TableCell>R$ {cultura.preco_normal.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setExpandedId(expandedId === cultura.id ? null : cultura.id)
+                          }
+                        >
+                          Mais informações
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {expandedId === cultura.id && (
+                      <TableRow>
+                        <TableCell colSpan={5}>
+                          <div className="p-2 bg-gray-50 rounded">
+                            <div><b>Preço Prata:</b> R$ {cultura.preco_prata.toFixed(2)}</div>
+                            <div><b>Preço Ouro:</b> R$ {cultura.preco_ouro.toFixed(2)}</div>
+                            <div><b>Preço Irídio:</b> R$ {cultura.preco_iridio.toFixed(2)}</div>
+                            <div><b>Recorrente:</b> {cultura.recorrente ? "Sim" : "Não"}</div>
+                            <div><b>Produtividade Esperada:</b> {cultura.produtividade_esperada}</div>
+                            <div><b>Estação:</b> {(cultura as any).estacao || "Não especificada"}</div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 ))
               ) : (
                 <TableRow>
@@ -133,5 +147,24 @@ export default function CulturasPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+// Componente auxiliar para mostrar imagem se existir
+function CulturaImg({ nome }: { nome: string }) {
+  // Caminho da imagem baseado no nome da cultura
+  const src = `/small-imgs/${nome.toLowerCase()}.png`
+  const [exists, setExists] = useState(true)
+
+  useEffect(() => {
+    // Verifica se a imagem existe
+    fetch(src, { method: "HEAD" })
+      .then(res => setExists(res.ok))
+      .catch(() => setExists(false))
+  }, [src])
+
+  if (!exists) return null
+  return (
+    <img src={src} alt={nome} style={{ width: 32, height: 32, objectFit: "contain" }} />
   )
 }

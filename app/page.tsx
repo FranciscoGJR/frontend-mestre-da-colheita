@@ -23,6 +23,11 @@ interface Alerta {
   tipo: string
 }
 
+interface Cultura {
+  id: number
+  nome: string
+}
+
 interface DashboardData {
   plantios: Plantio[]
   alertas: Alerta[]
@@ -32,12 +37,17 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [culturas, setCulturas] = useState<Cultura[]>([])
 
   useEffect(() => {
     async function fetchDashboard() {
       try {
-        const data = await fetchApi("/dashboard")
-        setData(data)
+        const [dashboardData, culturasData] = await Promise.all([
+          fetchApi("/dashboard"),
+          fetchApi("/culturas")
+        ])
+        setData(dashboardData)
+        setCulturas(culturasData)
       } catch (err) {
         setError("Erro ao carregar o dashboard. Tente novamente mais tarde.")
         console.error(err)
@@ -48,6 +58,23 @@ export default function Dashboard() {
 
     fetchDashboard()
   }, [])
+
+  // Função utilitária para obter o nome da cultura pelo id
+  function getNomeCultura(id_cultura: number) {
+    const cultura = culturas.find(c => c.id === id_cultura)
+    return cultura ? cultura.nome : `Cultura ID: ${id_cultura}`
+  }
+
+  // Função para substituir "Cultura ID X" por "Cultura {nome}" (minúsculo) nas mensagens de alerta
+  function formatMensagemAlerta(mensagem: string) {
+    // Regex para encontrar "Cultura ID X"
+    const regex = /Cultura ID (\d+)/g
+    return mensagem.replace(regex, (_, idStr) => {
+      const id = parseInt(idStr, 10)
+      const nome = getNomeCultura(id)
+      return `Cultura de ${typeof nome === "string" ? nome.toLowerCase() : nome}`
+    }).replace("pronto para colher", "pronta pra colher")
+  }
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Carregando...</div>
@@ -75,7 +102,9 @@ export default function Dashboard() {
             <Alert key={index} className="border-amber-500 bg-amber-50">
               <Bell className="h-4 w-4 text-amber-600" />
               <AlertTitle className="text-amber-800">Atenção</AlertTitle>
-              <AlertDescription className="text-amber-700">{alerta.mensagem}</AlertDescription>
+              <AlertDescription className="text-amber-700">
+                {formatMensagemAlerta(alerta.mensagem)}
+              </AlertDescription>
             </Alert>
           ))}
         </div>
@@ -88,8 +117,12 @@ export default function Dashboard() {
             data.plantios.map((plantio) => (
               <Card key={plantio.id}>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Plantio #{plantio.id}</CardTitle>
-                  <CardDescription>Cultura ID: {plantio.id_cultura}</CardDescription>
+                  <CardTitle className="text-lg">
+                    {`#${plantio.id} Plantio de ${getNomeCultura(plantio.id_cultura).toLowerCase()}`}
+                  </CardTitle>
+                  <CardDescription>
+                    {getNomeCultura(plantio.id_cultura)}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
