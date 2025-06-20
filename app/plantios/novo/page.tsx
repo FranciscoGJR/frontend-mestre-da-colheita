@@ -71,10 +71,11 @@ export default function NovoPlantioPage() {
 
   const handleSelectChange = (name: string, value: string) => {
     if (name === "id_cultura") {
-      // Garantir que o id_cultura seja um número
+      const culturaSelecionada = culturas.find(c => c.id === Number.parseInt(value))
       setFormData({
         ...formData,
         [name]: Number.parseInt(value),
+        estacao_plantio: culturaSelecionada && (culturaSelecionada as any).estacao ? (culturaSelecionada as any).estacao : "",
       })
     } else {
       setFormData({
@@ -90,17 +91,25 @@ export default function NovoPlantioPage() {
     setError(null)
 
     try {
-      // Verificar se id_cultura é um número válido
       if (!formData.id_cultura) {
         throw new Error("Selecione uma cultura válida")
       }
 
-      // Log para debug
-      console.log("Enviando dados:", JSON.stringify(formData, null, 2))
+      // Monta apenas os campos esperados pelo backend
+      const dataToSend = {
+        id_usuario: formData.id_usuario,
+        id_cultura: formData.id_cultura,
+        quantidade_sementes: formData.quantidade_sementes,
+        data_plantio: new Date(formData.data_plantio).toISOString(), // Garante formato ISO
+        localizacao: formData.localizacao,
+        observacoes: formData.observacoes,
+      }
+
+      console.log("Enviando dados:", JSON.stringify(dataToSend, null, 2))
 
       await fetchApi("/plantios", {
         method: "POST",
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       })
       router.push("/plantios")
     } catch (err) {

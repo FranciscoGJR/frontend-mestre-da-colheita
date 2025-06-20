@@ -119,8 +119,6 @@ export default function ColheitasPage() {
                 colheitas.map((colheita) => (
                   <TableRow
                     key={colheita.id}
-                    className="cursor-pointer"
-                    onClick={() => router.push(`/colheitas/${colheita.id}`)}
                   >
                     <TableCell>{colheita.id}</TableCell>
                     <TableCell>#{colheita.id_plantio}</TableCell>

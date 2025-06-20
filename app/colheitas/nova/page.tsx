@@ -50,13 +50,27 @@ export default function NovaColheitaPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [plantiosData, culturasData] = await Promise.all([fetchApi("/plantios"), fetchApi("/culturas")])
+        const [plantiosData, culturasData] = await Promise.all([
+          fetchApi("/plantios"),
+          fetchApi("/culturas"),
+        ])
 
-        // Filtrar apenas plantios prontos para colher
-        const plantiosFiltrados = plantiosData.filter(
-          (p: Plantio) => p.status === "Pronto para colher" || p.status === "Crescendo",
-        )
-        setPlantios(plantiosFiltrados)
+        // Cria um mapa para lookup rápido de cultura por id
+        const culturaMap = new Map<number, any>()
+        culturasData.forEach((c: any) => culturaMap.set(c.id, c))
+
+        // Filtra plantios prontos para colher (data atual >= data de plantio + tempo_crescimento)
+        const hoje = new Date()
+        const plantiosElegiveis = plantiosData.filter((p: any) => {
+          const cultura = culturaMap.get(p.id_cultura)
+          if (!cultura) return false
+          const dataPlantio = new Date(p.data_plantio)
+          const dataColheita = new Date(dataPlantio)
+          dataColheita.setDate(dataColheita.getDate() + cultura.tempo_crescimento)
+          return hoje >= dataColheita
+        })
+
+        setPlantios(plantiosElegiveis)
         setCulturas(culturasData)
       } catch (err) {
         console.error("Erro ao carregar dados:", err)
@@ -199,11 +213,18 @@ export default function NovaColheitaPage() {
                     <SelectValue placeholder="Selecione um plantio" />
                   </SelectTrigger>
                   <SelectContent>
-                    {plantios.map((plantio) => (
-                      <SelectItem key={plantio.id} value={plantio.id.toString()}>
-                        Plantio #{plantio.id} - {getNomeCultura(plantio.id)}
-                      </SelectItem>
-                    ))}
+                    {plantios.length === 0 ? (
+                      // Não use SelectItem para mensagem, use um div ou span
+                      <div className="bg-white px-4 py-2 text-muted-foreground text-sm">
+                        Não existe plantio pronto para colher
+                      </div>
+                    ) : (
+                      plantios.map((plantio) => (
+                        <SelectItem key={plantio.id} value={plantio.id.toString()}>
+                          Plantio #{plantio.id} - {getNomeCultura(plantio.id)}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>

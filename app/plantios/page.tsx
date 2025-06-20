@@ -13,6 +13,7 @@ import { fetchApi } from "@/lib/api"
 interface Cultura {
   id: number
   nome: string
+  tempo_crescimento: number
 }
 
 interface Plantio {
@@ -71,6 +72,37 @@ export default function PlantiosPage() {
     return cultura ? cultura.nome : `ID: ${idCultura}`
   }
 
+  // Função para buscar tempo de crescimento da cultura
+  const getTempoCrescimento = (idCultura: number) => {
+    const cultura = culturas.find((c) => c.id === idCultura)
+    return cultura ? cultura.tempo_crescimento : 0
+  }
+
+  // Função para somar dias a uma data
+  function addDays(dateStr: string, days: number) {
+    const date = new Date(dateStr)
+    date.setDate(date.getDate() + days)
+    return date
+  }
+
+  // Função para calcular data de colheita
+  const getDataColheita = (plantio: Plantio) => {
+    const dias = getTempoCrescimento(plantio.id_cultura)
+    return addDays(plantio.data_plantio, dias)
+  }
+
+  // Função para status dinâmico
+  const getStatusDinamico = (plantio: Plantio) => {
+    const dataColheita = getDataColheita(plantio)
+    const hoje = new Date()
+    if (dataColheita <= hoje) {
+      return "Pronto para colher"
+    } else{
+      return "Crescendo"
+    }
+    return plantio.status
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pronto para colher":
@@ -112,9 +144,9 @@ export default function PlantiosPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
                 <TableHead>Cultura</TableHead>
                 <TableHead>Data de Plantio</TableHead>
+                <TableHead>Data de Colheita</TableHead>
                 <TableHead>Localização</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Ações</TableHead>
@@ -122,35 +154,41 @@ export default function PlantiosPage() {
             </TableHeader>
             <TableBody>
               {plantios.length > 0 ? (
-                plantios.map((plantio) => (
-                  <TableRow key={plantio.id}>
-                    <TableCell>{plantio.id}</TableCell>
-                    <TableCell>{getNomeCultura(plantio.id_cultura)}</TableCell>
-                    <TableCell>{new Date(plantio.data_plantio).toLocaleDateString("pt-BR")}</TableCell>
-                    <TableCell>{plantio.localizacao || "Não especificada"}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(plantio.status)}>{plantio.status}</Badge>
-                    </TableCell>
-                    <TableCell className="flex space-x-2">
-                      <Button variant="outline" size="icon" onClick={() => router.push(`/plantios/${plantio.id}`)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => router.push(`/plantios/editar/${plantio.id}`)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="destructive" size="icon" onClick={() => handleDelete(plantio.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                plantios.map((plantio) => {
+                  const dataColheita = getDataColheita(plantio)
+                  const status = getStatusDinamico(plantio)
+                  return (
+                    <TableRow key={plantio.id}>
+                      <TableCell>{getNomeCultura(plantio.id_cultura)}</TableCell>
+                      <TableCell>{new Date(plantio.data_plantio).toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell>{dataColheita.toLocaleDateString("pt-BR")}</TableCell> {/* NOVO */}
+                      <TableCell>{plantio.localizacao || "Não especificada"}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(getStatusDinamico(plantio))}>
+                          {getStatusDinamico(plantio)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="flex space-x-2">
+                        <Button variant="outline" size="icon" onClick={() => router.push(`/plantios/${plantio.id}`)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => router.push(`/plantios/editar/${plantio.id}`)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="destructive" size="icon" onClick={() => handleDelete(plantio.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={7} className="text-center">
                     Nenhum plantio encontrado
                   </TableCell>
                 </TableRow>

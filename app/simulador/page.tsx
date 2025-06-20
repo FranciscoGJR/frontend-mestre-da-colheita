@@ -15,12 +15,24 @@ import { fetchApi } from "@/lib/api"
 interface Cultura {
   id: number
   nome: string
+  tempo_crescimento: number
+  preco_normal: number
+  preco_prata: number
+  preco_ouro: number
+  preco_iridio: number
 }
 
 interface SimulacaoResultado {
   lucro_estimado: number
   dias_ciclo: number
 }
+
+const QUALIDADES = [
+  { value: "normal", label: "Normal" },
+  { value: "prata", label: "Prata" },
+  { value: "ouro", label: "Ouro" },
+  { value: "iridio", label: "Irídio" },
+]
 
 export default function SimuladorPage() {
   const [culturas, setCulturas] = useState<Cultura[]>([])
@@ -32,6 +44,7 @@ export default function SimuladorPage() {
   const [formData, setFormData] = useState({
     id_cultura: "",
     quantidade: 1,
+    qualidade: "",
   })
 
   useEffect(() => {
@@ -72,27 +85,40 @@ export default function SimuladorPage() {
     })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Calcula o lucro no frontend conforme cultura e qualidade
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError(null)
     setResultado(null)
 
-    try {
-      const data = await fetchApi("/simulador", {
-        method: "POST",
-        body: JSON.stringify({
-          id_cultura: Number.parseInt(formData.id_cultura),
-          quantidade: formData.quantidade,
-        }),
-      })
-      setResultado(data)
-    } catch (err) {
-      setError("Erro ao simular lucro. Verifique os dados e tente novamente.")
-      console.error(err)
-    } finally {
-      setLoading(false)
+    const cultura = culturas.find(c => c.id === Number(formData.id_cultura))
+    if (!cultura) {
+      setError("Cultura não encontrada.")
+      return
     }
+
+    let preco = 0
+    switch (formData.qualidade) {
+      case "normal":
+        preco = cultura.preco_normal
+        break
+      case "prata":
+        preco = cultura.preco_prata
+        break
+      case "ouro":
+        preco = cultura.preco_ouro
+        break
+      case "iridio":
+        preco = cultura.preco_iridio
+        break
+      default:
+        preco = cultura.preco_normal
+    }
+
+    const lucro_estimado = preco * Number(formData.quantidade)
+    const dias_ciclo = cultura.tempo_crescimento
+
+    setResultado({ lucro_estimado, dias_ciclo })
   }
 
   return (
@@ -136,6 +162,25 @@ export default function SimuladorPage() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="qualidade">Qualidade</Label>
+                <Select
+                  onValueChange={(value) => handleSelectChange("qualidade", value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a qualidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {QUALIDADES.map((q) => (
+                      <SelectItem key={q.value} value={q.value}>
+                        {q.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="quantidade">Quantidade</Label>
                 <Input
                   id="quantidade"
@@ -152,7 +197,7 @@ export default function SimuladorPage() {
                 <Button
                   type="submit"
                   className="w-full bg-green-600 hover:bg-green-700"
-                  disabled={loading || !formData.id_cultura}
+                  disabled={loading || !formData.id_cultura || !formData.qualidade}
                 >
                   <Calculator className="mr-2 h-4 w-4" />
                   {loading ? "Calculando..." : "Calcular Lucro Estimado"}
